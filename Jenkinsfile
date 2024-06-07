@@ -2,9 +2,6 @@ def frontendImage="pandaacademy/frontend"
 def backendImage="pandaacademy/backend"
 def backendDockerTag=""
 def frontendDockerTag=""
-def dockerRegistry=""
-def registryCredentials="dockerhub"
-
 
 pipeline {
     agent {
@@ -16,8 +13,8 @@ pipeline {
     }
     
     parameters {
-        string(name: 'backendDockerTag', defaultValue: '', description: 'Backend docker image tag')
-        string(name: 'frontendDockerTag', defaultValue: '', description: 'Frontend docker image tag')
+        string(name: 'backendDockerTag', defaultValue: 'latest', description: 'Backend docker image tag')
+        string(name: 'frontendDockerTag', defaultValue: 'latest', description: 'Frontend docker image tag')
     }
 
     stages {
@@ -27,12 +24,9 @@ pipeline {
             }
         }
 
-        stage('Adjust version') {
+        stage('Show version') {
             steps {
                 script{
-                    backendDockerTag = params.backendDockerTag.isEmpty() ? "latest" : params.backendDockerTag
-                    frontendDockerTag = params.frontendDockerTag.isEmpty() ? "latest" : params.frontendDockerTag
-                    
                     currentBuild.description = "Backend: ${backendDockerTag}, Frontend: ${frontendDockerTag}"
                 }
             }
@@ -49,9 +43,7 @@ pipeline {
                 script {
                     withEnv(["FRONTEND_IMAGE=$frontendImage:$frontendDockerTag", 
                              "BACKEND_IMAGE=$backendImage:$backendDockerTag"]) {
-                       docker.withRegistry("$dockerRegistry", "$registryCredentials") {
-                            sh "docker-compose up -d"
-                        }
+                        sh "docker-compose up -d"
                     }
                 }
             }
